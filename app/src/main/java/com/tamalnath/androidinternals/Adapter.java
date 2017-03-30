@@ -93,7 +93,7 @@ class Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
     }
 
-    private static class KeyValueHolder extends RecyclerView.ViewHolder {
+    static class KeyValueHolder extends RecyclerView.ViewHolder {
 
         TextView keyView;
         TextView valueView;
