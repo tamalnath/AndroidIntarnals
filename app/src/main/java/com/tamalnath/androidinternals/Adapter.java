@@ -59,22 +59,28 @@ class Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         });
     }
 
+    private void addKeyValue(final String key, final String value) {
+        dataList.add(new Data() {
+
+            @Override
+            public int getLayout() {
+                return R.layout.card_key_value;
+            }
+
+            @Override
+            public void decorate(RecyclerView.ViewHolder viewHolder) {
+                KeyValueHolder holder = (KeyValueHolder) viewHolder;
+                holder.keyView.setText(key);
+                holder.valueView.setText(value);
+            }
+        });
+    }
+
     void addMap(Map<?, ?> map) {
         for (final Map.Entry<?, ?> entry : map.entrySet()) {
-            dataList.add(new Data() {
-
-                @Override
-                public int getLayout() {
-                    return R.layout.card_key_value;
-                }
-
-                @Override
-                public void decorate(RecyclerView.ViewHolder viewHolder) {
-                    KeyValueHolder holder = (KeyValueHolder) viewHolder;
-                    holder.keyView.setText(Utils.toString(entry.getKey()));
-                    holder.valueView.setText(Utils.toString(entry.getValue(), "\n", "", "", null));
-                }
-            });
+            String key = Utils.toString(entry.getKey());
+            String value = Utils.toString(entry.getValue(), "\n", "", "", null);
+            addKeyValue(key, value);
         }
     }
 

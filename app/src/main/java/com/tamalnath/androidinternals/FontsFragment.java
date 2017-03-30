@@ -3,12 +3,15 @@ package com.tamalnath.androidinternals;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.TextView;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -23,10 +26,9 @@ import javax.xml.parsers.ParserConfigurationException;
 public class FontsFragment extends Fragment {
 
     private static final String TAG = "FontsFragment";
-    private static final String SAMPLE = "The quick brown fox jumps over the lazy dog";
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater, final ViewGroup container, Bundle savedInstanceState) {
         RecyclerView recyclerView = (RecyclerView) inflater.inflate(R.layout.recycler_view, container, false);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -42,18 +44,12 @@ public class FontsFragment extends Fragment {
         NodeList familyList = doc.getElementsByTagName("family");
         for (int i = 0; i < familyList.getLength(); i++) {
             Element family = (Element) familyList.item(i);
-            String familyName = family.getAttribute("name");
+            final String familyName = family.getAttribute("name");
             if (familyName.isEmpty()) {
                 continue;
             }
-            String lang = family.getAttribute("lang");
-            String variant = family.getAttribute("variant");
-            if (!lang.isEmpty()) {
-                familyName += " lang:" + lang;
-            }
-            if (!variant.isEmpty()) {
-                familyName += " variant:" + variant;
-            }
+            final String lang = family.getAttribute("lang");
+            final String variant = family.getAttribute("variant");
             adapter.addHeader(familyName);
             NodeList fontList = family.getElementsByTagName("font");
             for (int j = 0; j < fontList.getLength(); j++) {
@@ -61,21 +57,40 @@ public class FontsFragment extends Fragment {
                 adapter.addData(new Adapter.Data() {
                     @Override
                     public void decorate(RecyclerView.ViewHolder viewHolder) {
-                        String fontFile = font.getTextContent().trim();
-                        String weight = font.getAttribute("weight");
-                        String style = font.getAttribute("style");
-                        String fontName = fontFile;
-                        if (!weight.isEmpty()) {
-                            fontName += " weight:" + weight;
-                        }
-                        if (!style.isEmpty()) {
-                            fontName += " style:" + style;
-                        }
-                        Typeface typeface = Typeface.createFromFile("/system/fonts/" + fontFile);
+                        final String fontFile = font.getTextContent().trim();
+                        final String weight = font.getAttribute("weight");
+                        final String style = font.getAttribute("style");
+                        final Typeface typeface = Typeface.createFromFile("/system/fonts/" + fontFile);
                         Adapter.KeyValueHolder holder = (Adapter.KeyValueHolder) viewHolder;
-                        holder.keyView.setText(fontName);
-                        holder.valueView.setText(SAMPLE);
+                        holder.keyView.setText(fontFile);
+                        holder.valueView.setText(getText(R.string.fonts_sample));
                         holder.valueView.setTypeface(typeface);
+                        holder.itemView.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                View viewGroup = inflater.inflate(R.layout.font_details, null);
+                                TextView view;
+                                view = (TextView) viewGroup.findViewById(R.id.font_family);
+                                view.setText(familyName);
+                                view = (TextView) viewGroup.findViewById(R.id.font_lang);
+                                view.setText(lang);
+                                view = (TextView) viewGroup.findViewById(R.id.font_variant);
+                                view.setText(variant);
+                                view = (TextView) viewGroup.findViewById(R.id.font_file);
+                                view.setText(fontFile);
+                                view = (TextView) viewGroup.findViewById(R.id.font_weight);
+                                view.setText(weight);
+                                view = (TextView) viewGroup.findViewById(R.id.font_style);
+                                view.setText(style);
+                                EditText editText = (EditText) viewGroup.findViewById(R.id.font_edit);
+                                editText.setTypeface(typeface);
+                                new AlertDialog.Builder(getContext())
+                                        .setTitle(getString(R.string.font_details))
+                                        .setView(viewGroup)
+                                        .setPositiveButton(R.string.dismiss, null)
+                                        .show();
+                            }
+                        });
                     }
 
                     @Override

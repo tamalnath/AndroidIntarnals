@@ -1,8 +1,11 @@
 <resources>
     <string name="app_name">Android Internals</string>
     <string name="app_email">tamal.nath@gmail.com</string>
-    <string name="drawer_open">Open drawer</string>
-    <string name="drawer_close">Close drawer</string>
+    <string name="open">Open</string>
+    <string name="close">Close</string>
+    <string name="heading">Heading</string>
+    <string name="key">Key</string>
+    <string name="value">Value</string>
     <string name="loading">Loading&#8230;</string>
     <string name="dismiss">Dismiss</string>
     <string name="action_settings">Settings</string>
@@ -13,6 +16,14 @@
     <string name="build_properties">System Properties</string>
 
     <string name="fragment_fonts">Fonts</string>
+    <string name="font_details">Font Details</string>
+    <string name="fonts_family">Font Family</string>
+    <string name="fonts_lang">Language</string>
+    <string name="fonts_variant">Font variant</string>
+    <string name="fonts_file">Font File</string>
+    <string name="fonts_weight">Weight</string>
+    <string name="fonts_style">Style</string>
+    <string name="fonts_sample">The quick brown fox jumps over the lazy dog.</string>
 
     <string name="fragment_sensors">Sensors</string>
     <string name="sensor_unit_ms2">m/s&#178;</string>
