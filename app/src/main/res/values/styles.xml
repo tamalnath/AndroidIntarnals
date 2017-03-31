@@ -2,6 +2,6 @@
 
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar" />
 
-    <style name="Heading" parent="TextAppearance.AppCompat.Headline" />
+    <style name="Heading" parent="TextAppearance.AppCompat.Title" />
 
 </resources>

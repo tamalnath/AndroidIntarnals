@@ -1,37 +1,35 @@
 package com.tamalnath.androidinternals;
 
 import android.content.Context;
-import android.graphics.Typeface;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.LayoutRes;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class SensorsFragment extends Fragment implements SensorEventListener {
 
-    private static final int DELAY_MILLIS = 100;
     private static final Map<String, Float> GRAVITY = Utils.findConstants(SensorManager.class, float.class, "GRAVITY_(.+)");
     private static final Map<String, Float> LIGHT = Utils.findConstants(SensorManager.class, float.class, "LIGHT_(.+)");
 
     SensorManager sensorManager;
     List<Sensor> sensors;
-    Map<Sensor, Long> sensorUpdateMap = new HashMap<>();
-    Map<Sensor, TextView> sensorValuesMap = new HashMap<>();
+    RecyclerView recyclerView;
 
     private static String findNearest(Map<String, Float> map, float value) {
         float absValue = Math.abs(value);
@@ -51,32 +49,40 @@ public class SensorsFragment extends Fragment implements SensorEventListener {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_sensors, container, false);
+    public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        recyclerView = (RecyclerView) inflater.inflate(R.layout.recycler_view, container, false);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        Adapter adapter = new Adapter();
         sensorManager = (SensorManager) getActivity().getSystemService(Context.SENSOR_SERVICE);
         sensors = new ArrayList<>(sensorManager.getSensorList(Sensor.TYPE_ALL));
-        ViewGroup layout = (ViewGroup) rootView.findViewById(R.id.id_sensors);
-        for (Sensor sensor : sensors) {
-            LinearLayout linearLayout = new LinearLayout(getContext());
-            linearLayout.setOrientation(LinearLayout.VERTICAL);
-            TextView sensorNameView = new TextView(getContext());
-            sensorNameView.setTypeface(Typeface.DEFAULT_BOLD);
-            sensorNameView.setText(sensor.getName());
-            linearLayout.addView(sensorNameView);
-            TextView sensorValueView = new TextView(getContext());
-            linearLayout.addView(sensorValueView);
-            linearLayout.setOnClickListener(new SensorDetailsClickListener(sensor, inflater));
-            layout.addView(linearLayout);
-            sensorValuesMap.put(sensor, sensorValueView);
+        for (final Sensor sensor : sensors) {
+            adapter.addData(new Adapter.Data() {
+
+                @Override
+                public void decorate(RecyclerView.ViewHolder viewHolder) {
+                    Adapter.KeyValueHolder holder = (Adapter.KeyValueHolder) viewHolder;
+                    holder.keyView.setText(sensor.getName());
+                    holder.valueView.setText("");
+                    holder.itemView.setOnClickListener(new SensorDetailsClickListener(sensor, inflater));
+                }
+
+                @Override
+                @LayoutRes
+                public int getLayout() {
+                    return R.layout.card_key_value;
+                }
+            });
         }
-        return rootView;
+        recyclerView.setAdapter(adapter);
+        return recyclerView;
     }
 
     @Override
     public void onResume() {
         super.onResume();
         for (Sensor sensor : sensors) {
-            sensorManager.registerListener(this, sensor, 1000 * DELAY_MILLIS);
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
         }
     }
 
@@ -90,13 +96,12 @@ public class SensorsFragment extends Fragment implements SensorEventListener {
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        Sensor sensor = event.sensor;
-        Long lastUpdated = sensorUpdateMap.get(sensor);
-        long now = System.currentTimeMillis();
-        if (lastUpdated != null && now - lastUpdated < DELAY_MILLIS) {
+        int index = sensors.indexOf(event.sensor);
+        RecyclerView.ViewHolder holder = recyclerView.findViewHolderForAdapterPosition(index);
+        if (holder == null) {
             return;
         }
-        sensorUpdateMap.put(sensor, now);
+        Sensor sensor = event.sensor;
         String unit = getUnit(sensor.getType());
         String value;
         float[] v = event.values;
@@ -110,8 +115,10 @@ public class SensorsFragment extends Fragment implements SensorEventListener {
                 value += " (" + findNearest(GRAVITY, magnitude) + ")";
                 break;
             case Sensor.TYPE_MAGNETIC_FIELD:
-            case Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED:
                 value = getString(R.string.sensor_values_xyz_unit, v[0], v[1], v[2], unit);
+                break;
+            case Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED:
+                value = getString(R.string.sensor_values_magnetic_field_uncalibrated, v[0], v[1], v[2], v[3], v[4], v[5]);
                 break;
             case Sensor.TYPE_GYROSCOPE:
                 value = getString(R.string.sensor_values_xyz_unit, v[0], v[1], v[2], unit);
@@ -123,30 +130,37 @@ public class SensorsFragment extends Fragment implements SensorEventListener {
                 value = getString(R.string.sensor_values_xyz_unit, v[2], v[0], v[1], unit);
                 break;
             case Sensor.TYPE_PROXIMITY:
-                if (event.values[0] == 0) {
+                if (v[0] == 0) {
                     value = getString(R.string.sensor_value_near);
-                } else if (event.values[0] == sensor.getMaximumRange()) {
+                } else if (v[0] == sensor.getMaximumRange()) {
                     value = getString(R.string.sensor_value_far);
                 } else {
-                    value = getString(R.string.sensor_value_unit, event.values[0], unit);
+                    value = getString(R.string.sensor_value_unit, v[0], unit);
                 }
                 break;
             case Sensor.TYPE_LIGHT:
-                value = getString(R.string.sensor_value_unit, event.values[0], unit);
-                value += " (" + findNearest(LIGHT, event.values[0]) + ")";
+                value = getString(R.string.sensor_value_unit, v[0], unit);
+                value += " (" + findNearest(LIGHT, v[0]) + ")";
                 break;
             case Sensor.TYPE_SIGNIFICANT_MOTION:
             case Sensor.TYPE_STEP_DETECTOR:
                 value = getString(R.string.sensor_values_no_value, System.currentTimeMillis());
                 break;
             case Sensor.TYPE_STEP_COUNTER:
-                value = getString(R.string.sensor_value_unit, event.values[0], unit);
+            case Sensor.TYPE_TEMPERATURE:
+            case Sensor.TYPE_AMBIENT_TEMPERATURE:
+            case Sensor.TYPE_PRESSURE:
+            case Sensor.TYPE_RELATIVE_HUMIDITY:
+                value = getString(R.string.sensor_value_unit, v[0], unit);
                 break;
             default:
-                value = Arrays.toString(v);
+                StringBuilder sb = new StringBuilder();
+                for (float f : v) {
+                    sb.append(String.format(Locale.getDefault(), ", %1$ .2f", f));
+                }
+                value = sb.substring(2);
         }
-        TextView valueView = sensorValuesMap.get(sensor);
-        valueView.setText(value);
+        ((Adapter.KeyValueHolder) holder).valueView.setText(value);
     }
 
     @Override
@@ -199,7 +213,6 @@ public class SensorsFragment extends Fragment implements SensorEventListener {
         public void onClick(View v) {
             View viewGroup = inflater.inflate(R.layout.sensor_details, null);
 
-            String sensorType = Utils.findConstant(Sensor.class, sensor.getType(), "TYPE_(.+)");
             String unit = getUnit(sensor.getType());
             TextView view;
             view = (TextView) viewGroup.findViewById(R.id.sensor_id);
@@ -210,6 +223,12 @@ public class SensorsFragment extends Fragment implements SensorEventListener {
                 viewGroup.findViewById(R.id.sensor_id_label).setVisibility(View.GONE);
             }
             view = (TextView) viewGroup.findViewById(R.id.sensor_type);
+            String sensorType;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
+                 sensorType = sensor.getStringType();
+            } else {
+                sensorType = Utils.findConstant(Sensor.class, sensor.getType(), "TYPE_(.+)");
+            }
             view.setText(sensorType);
             view = (TextView) viewGroup.findViewById(R.id.sensor_vendor);
             view.setText(sensor.getVendor());
@@ -261,6 +280,14 @@ public class SensorsFragment extends Fragment implements SensorEventListener {
             } else {
                 view.setVisibility(View.GONE);
                 viewGroup.findViewById(R.id.sensor_additional_info_label).setVisibility(View.GONE);
+            }
+            view = (TextView) viewGroup.findViewById(R.id.sensor_reporting_mode);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                String mode = Utils.findConstant(Sensor.class, sensor.getReportingMode(), "REPORTING_MODE_(.+)");
+                view.setText(mode);
+            } else {
+                view.setVisibility(View.GONE);
+                viewGroup.findViewById(R.id.sensor_reporting_mode_label).setVisibility(View.GONE);
             }
             new AlertDialog.Builder(getContext())
                     .setTitle(sensor.getName())
