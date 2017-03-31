@@ -7,9 +7,9 @@
     <string name="key">Key</string>
     <string name="value">Value</string>
     <string name="loading">Loading&#8230;</string>
-    <string name="dismiss">Dismiss</string>
+    <string name="ok">OK</string>
+    <string name="unknown">Unknown</string>
     <string name="action_settings">Settings</string>
-    <string name="assert_error">Assertion Error: expected %1$d got %2$d.</string>
 
     <string name="fragment_build">Build</string>
     <string name="build_build">Build Information</string>
@@ -67,5 +67,20 @@
     <string name="sensor_reporting_mode">Reporting Mode</string>
     <string name="sensor_accuracy">Accuracy</string>
     <string name="sensor_timestamp">Delay</string>
+
+    <string name="fragment_battery">Battery</string>
+    <string name="battery_present">Battery Present</string>
+    <string name="battery_status">Battery Status</string>
+    <string name="battery_health">Battery Health</string>
+    <string name="battery_plugged">Battery Plugged</string>
+    <string name="battery_plugged_unplugged">Not Plugged</string>
+    <string name="battery_charge">Battery Charged</string>
+    <string name="battery_voltage">Battery Voltage</string>
+    <string name="battery_temperature">Battery Temperature</string>
+    <string name="battery_technology">Battery Technology</string>
+
+    <string name="fragment_location">Location</string>
+    <string name="location_permission">Please grant the location permission!</string>
+    <string name="location_lat_lon">Latitude: %1$s\nLongitude: %2$s\nTime: %3$s</string>
 
 </resources>

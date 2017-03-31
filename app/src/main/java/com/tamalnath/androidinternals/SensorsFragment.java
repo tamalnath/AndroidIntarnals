@@ -292,7 +292,7 @@ public class SensorsFragment extends Fragment implements SensorEventListener {
             new AlertDialog.Builder(getContext())
                     .setTitle(sensor.getName())
                     .setView(viewGroup)
-                    .setPositiveButton(R.string.dismiss, null)
+                    .setPositiveButton(R.string.close, null)
                     .show();
         }
     }

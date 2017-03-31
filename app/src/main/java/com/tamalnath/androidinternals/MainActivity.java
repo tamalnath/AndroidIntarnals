@@ -56,7 +56,6 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
@@ -99,6 +98,17 @@ public class MainActivity extends AppCompatActivity
         // Empty
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+        PagerAdapter adapter = (PagerAdapter) viewPager.getAdapter();
+        for (Fragment fragment : adapter.fragments) {
+            if ((short) fragment.hashCode() == requestCode) {
+                fragment.onRequestPermissionsResult(requestCode, permissions, grantResults);
+                break;
+            }
+        }
+    }
+
     private class PagerAdapter extends FragmentPagerAdapter {
 
         private Fragment[] fragments;
@@ -107,8 +117,10 @@ public class MainActivity extends AppCompatActivity
             super(fragmentManager);
             fragments = new Fragment[]{
                     new BuildFragment(),
+                    new BatteryFragment(),
                     new FontsFragment(),
                     new SensorsFragment(),
+                    new LocationFragment(),
             };
         }
 

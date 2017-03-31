@@ -3,20 +3,25 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_build"
             android:icon="@drawable/ic_build"
             android:orderInCategory="0"
             android:title="@string/fragment_build" />
         <item
-            android:id="@+id/nav_fonts"
-            android:icon="@drawable/ic_font"
+            android:icon="@drawable/ic_battery"
             android:orderInCategory="1"
+            android:title="@string/fragment_battery" />
+        <item
+            android:icon="@drawable/ic_font"
+            android:orderInCategory="2"
             android:title="@string/fragment_fonts" />
         <item
-            android:id="@+id/nav_sensors"
             android:icon="@drawable/ic_sensor"
-            android:orderInCategory="2"
+            android:orderInCategory="3"
             android:title="@string/fragment_sensors" />
+        <item
+            android:icon="@drawable/ic_location"
+            android:orderInCategory="4"
+            android:title="@string/fragment_location" />
     </group>
 
 </menu>

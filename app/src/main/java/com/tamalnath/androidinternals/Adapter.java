@@ -59,7 +59,7 @@ class Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         });
     }
 
-    private void addKeyValue(final String key, final String value) {
+    void addKeyValue(final String key, final String value) {
         dataList.add(new Data() {
 
             @Override
