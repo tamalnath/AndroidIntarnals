@@ -7,6 +7,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.annotation.LayoutRes;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
@@ -16,8 +17,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -56,6 +60,12 @@ public class SensorsFragment extends Fragment implements SensorEventListener {
         Adapter adapter = new Adapter();
         sensorManager = (SensorManager) getActivity().getSystemService(Context.SENSOR_SERVICE);
         sensors = new ArrayList<>(sensorManager.getSensorList(Sensor.TYPE_ALL));
+        Collections.sort(sensors, new Comparator<Sensor>() {
+            @Override
+            public int compare(Sensor s1, Sensor s2) {
+                return s1.getType() - s2.getType();
+            }
+        });
         for (final Sensor sensor : sensors) {
             adapter.addData(new Adapter.Data() {
 
@@ -81,17 +91,23 @@ public class SensorsFragment extends Fragment implements SensorEventListener {
     @Override
     public void onResume() {
         super.onResume();
+        long time = SystemClock.currentThreadTimeMillis();
         for (Sensor sensor : sensors) {
-            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+            sensorManager.registerListener(this, sensor, 1_000_000);
         }
+        time = SystemClock.currentThreadTimeMillis() - time;
+        Toast.makeText(getContext(), getString(R.string.sensor_start, sensors.size(), time), Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        long time = SystemClock.currentThreadTimeMillis();
         for (Sensor sensor : sensors) {
             sensorManager.unregisterListener(this, sensor);
         }
+        time = SystemClock.currentThreadTimeMillis() - time;
+        Toast.makeText(getContext(), getString(R.string.sensor_stop, sensors.size(), time), Toast.LENGTH_SHORT).show();
     }
 
     @Override

@@ -67,6 +67,8 @@
     <string name="sensor_reporting_mode">Reporting Mode</string>
     <string name="sensor_accuracy">Accuracy</string>
     <string name="sensor_timestamp">Delay</string>
+    <string name="sensor_start">Started %1$d sensors in %2$d ms.</string>
+    <string name="sensor_stop">Stopped %1$d sensors in %2$d ms.</string>
 
     <string name="fragment_battery">Battery</string>
     <string name="battery_present">Battery Present</string>
@@ -82,5 +84,9 @@
     <string name="fragment_location">Location</string>
     <string name="location_permission">Please grant the location permission!</string>
     <string name="location_lat_lon">Latitude: %1$s\nLongitude: %2$s\nTime: %3$s</string>
+    <string name="location_request">Requesting location from %1$s provider.</string>
+    <string name="location_enabled">%1$s provider enabled.</string>
+    <string name="location_disabled">%1$s provider disabled.</string>
+    <string name="location_changed">Status for %1$s provider has changed to %2$s.</string>
 
 </resources>

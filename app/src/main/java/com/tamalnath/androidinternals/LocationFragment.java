@@ -4,30 +4,36 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
 import java.util.List;
+import java.util.Map;
 
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
 
-public class LocationFragment extends Fragment {
+public class LocationFragment extends Fragment implements LocationListener {
 
     private Adapter adapter;
+    private RecyclerView recyclerView;
+    private LocationManager locationManager;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        RecyclerView recyclerView = (RecyclerView) inflater.inflate(R.layout.recycler_view, container, false);
+        locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
+        recyclerView = (RecyclerView) inflater.inflate(R.layout.recycler_view, container, false);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new Adapter();
@@ -51,14 +57,27 @@ public class LocationFragment extends Fragment {
             ActivityCompat.requestPermissions(getActivity(), perms, (short) hashCode());
             return;
         }
-        LocationManager locationManager = (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE);
-        List<String> names = locationManager.getAllProviders();
-        for (String name : names) {
-            Location location = locationManager.getLastKnownLocation(name);
-            String latitude = Location.convert(location.getLatitude(), Location.FORMAT_SECONDS);
-            String longitude = Location.convert(location.getLongitude(), Location.FORMAT_SECONDS);
-            CharSequence time = DateUtils.getRelativeDateTimeString(getContext(), location.getTime(), DateUtils.SECOND_IN_MILLIS, DateUtils.WEEK_IN_MILLIS, DateUtils.FORMAT_ABBREV_ALL);
-            adapter.addKeyValue(name, getString(R.string.location_lat_lon, latitude, longitude, time));
+        List<String> providers = locationManager.getAllProviders();
+        for (final String provider : providers) {
+            Location location = locationManager.getLastKnownLocation(provider);
+            String locationDetails = getString(R.string.loading);
+            if (location == null) {
+                Toast.makeText(getContext(), getString(R.string.location_request, provider), Toast.LENGTH_SHORT).show();
+                locationManager.requestSingleUpdate(provider, this, null);
+            } else {
+                locationDetails = getLocationDetails(location);
+            }
+
+            adapter.addKeyValue(provider, locationDetails, new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    new AlertDialog.Builder(getContext())
+                            .setTitle(provider)
+                            .setMessage("Message")
+                            .setPositiveButton(R.string.close, null)
+                            .show();
+                }
+            });
         }
         adapter.notifyDataSetChanged();
     }
@@ -75,4 +94,37 @@ public class LocationFragment extends Fragment {
         }
         addLocationDetails();
     }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        int index = locationManager.getAllProviders().indexOf(location.getProvider());
+        RecyclerView.ViewHolder holder = recyclerView.findViewHolderForAdapterPosition(index);
+        ((Adapter.KeyValueHolder) holder).valueView.setText(getLocationDetails(location));
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+        String statusMsg = Utils.findConstant(LocationProvider.class, status, null);
+        statusMsg = getString(R.string.location_changed, provider, statusMsg);
+        Toast.makeText(getContext(), statusMsg, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+        Toast.makeText(getContext(), getString(R.string.location_enabled, provider), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+        Toast.makeText(getContext(), getString(R.string.location_disabled, provider), Toast.LENGTH_SHORT).show();
+        int index = locationManager.getAllProviders().indexOf(provider);
+        RecyclerView.ViewHolder holder = recyclerView.findViewHolderForAdapterPosition(index);
+        ((Adapter.KeyValueHolder) holder).valueView.setText(getText(R.string.unknown));
+    }
+
+    private String getLocationDetails(Location location) {
+        Map<String, Object> properties = Utils.findProperties(location);
+        return Utils.toString(properties, "\n", "", "", ": ");
+    }
+
 }

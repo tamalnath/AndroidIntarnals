@@ -1,6 +1,8 @@
 package com.tamalnath.androidinternals;
 
 import android.support.annotation.LayoutRes;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -45,7 +47,11 @@ class Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         dataList.add(data);
     }
 
-    void addHeader(final String header) {
+    void addHeader(@NonNull final String header) {
+        addHeader(header, null);
+    }
+
+    void addHeader(@NonNull final String header, @Nullable final View.OnClickListener listener) {
         dataList.add(new Data() {
 
             public int getLayout() {
@@ -55,11 +61,16 @@ class Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             @Override
             public void decorate(RecyclerView.ViewHolder holder) {
                 ((TextView) holder.itemView).setText(header);
+                holder.itemView.setOnClickListener(listener);
             }
         });
     }
 
-    void addKeyValue(final String key, final String value) {
+    void addKeyValue(@NonNull final String key, @NonNull final String value) {
+        addKeyValue(key, value, null);
+    }
+
+    void addKeyValue(@NonNull final String key, @NonNull final String value, @Nullable final View.OnClickListener listener) {
         dataList.add(new Data() {
 
             @Override
@@ -72,15 +83,20 @@ class Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 KeyValueHolder holder = (KeyValueHolder) viewHolder;
                 holder.keyView.setText(key);
                 holder.valueView.setText(value);
+                viewHolder.itemView.setOnClickListener(listener);
             }
         });
     }
 
-    void addMap(Map<?, ?> map) {
+    void addMap(@NonNull Map<?, ?> map) {
+        addMap(map, null);
+    }
+
+    void addMap(@NonNull Map<?, ?> map, @Nullable View.OnClickListener listener) {
         for (final Map.Entry<?, ?> entry : map.entrySet()) {
             String key = Utils.toString(entry.getKey());
             String value = Utils.toString(entry.getValue(), "\n", "", "", null);
-            addKeyValue(key, value);
+            addKeyValue(key, value, listener);
         }
     }
 

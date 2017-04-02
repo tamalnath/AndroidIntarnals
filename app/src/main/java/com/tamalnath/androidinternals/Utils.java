@@ -1,5 +1,6 @@
 package com.tamalnath.androidinternals;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -22,7 +23,7 @@ final class Utils {
     }
 
     @SuppressWarnings("unchecked")
-    static <T> Map<String, T> findConstants(Class<?> classType, @Nullable Class<T> fieldType, @Nullable String regex) {
+    static <T> Map<String, T> findConstants(@NonNull Class<?> classType, @Nullable Class<T> fieldType, @Nullable String regex) {
         Map<String, T> map = new TreeMap<>();
         Pattern pattern = regex == null ? null : Pattern.compile(regex);
         for (Field field : classType.getDeclaredFields()) {
@@ -54,8 +55,8 @@ final class Utils {
         return map;
     }
 
-    static String findConstant(Class<?> classType, Object value, String regex) {
-        Pattern pattern = Pattern.compile(regex);
+    static String findConstant(@NonNull Class<?> classType, @NonNull Object value, @Nullable String regex) {
+        Pattern pattern = regex == null ? null : Pattern.compile(regex);
         for (Field field : classType.getDeclaredFields()) {
             boolean isPublic = Modifier.isPublic(field.getModifiers());
             boolean isStatic = Modifier.isStatic(field.getModifiers());
@@ -93,8 +94,7 @@ final class Utils {
         if (object == null) {
             return map;
         }
-        Pattern pattern;
-        pattern = Pattern.compile(regex);
+        Pattern pattern = Pattern.compile(regex);
         for (Method method : object.getClass().getMethods()) {
             boolean isPublic = Modifier.isPublic(method.getModifiers());
             boolean isStatic = Modifier.isStatic(method.getModifiers());
